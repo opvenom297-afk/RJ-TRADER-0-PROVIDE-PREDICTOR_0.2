@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SureShot Matrix v6.0 | Premium Private Limited</title>
+    <style>
+        :root {
+            --bg-main: #0a0e1a;
+            --surface-panel: rgba(16, 24, 48, 0.85);
+            --neon-cyan: #00f2fe;
+            --neon-gold: #ffbd59;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --color-big: #ff3366;
+            --color-small: #00ff87;
+            --panel-border: rgba(0, 242, 254, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(255, 51, 102, 0.1) 0%, transparent 45%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        /* 2-Page Perspective View Box */
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 430px;
+            height: 660px;
+            perspective: 1500px;
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--surface-panel);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--panel-border);
+            border-radius: 28px;
+            padding: 35px 28px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255,255,255,0.05);
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+            backface-visibility: hidden;
+        }
+
+        /* Initial 2-Page Structural Layout states */
+        #login-screen {
+            z-index: 2;
+            transform: rotateY(0deg);
+        }
+
+        #analyzer-screen {
+            z-index: 1;
+            transform: rotateY(180deg);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Active Routing Condition */
+        .container.unlocked #login-screen {
+            transform: rotateY(-180deg);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .container.unlocked #analyzer-screen {
+            z-index: 2;
+            transform: rotateY(0deg);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .header-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--neon-cyan);
+            margin-bottom: 4px;
+        }
+
+        h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Dynamic Wingo Live Timer Setup */
+        .timer-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #w_timer {
+            font-family: monospace;
+            font-size: 1.2rem;
+            color: var(--neon-gold);
+            text-shadow: 0 0 10px rgba(255, 189, 89, 0.4);
+        }
+
+        /* Trend Indicator Module Container */
+        .trend-panel {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .trend-node {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .trend-val {
+            font-family: monospace;
+            color: var(--text-primary);
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            border-radius: 14px;
+            color: #ffffff;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 242, 254, 0.02);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
+        }
+
+        .action-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            color: #0a0e1a;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.25);
+            margin-top: auto;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.45);
+            filter: brightness(1.05);
+        }
+
+        /* SureShot Enterprise Output Window */
+        .output-viewport {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 18px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .output-text {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0.7);
+            opacity: 0;
+        }
+
+        .output-text.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .output-text.big-state {
+            color: var(--color-big);
+            text-shadow: 0 0 35px rgba(255, 51, 102, 0.6);
+        }
+
+        .output-text.small-state {
+            color: var(--color-small);
+            text-shadow: 0 0 35px rgba(0, 255, 135, 0.6);
+        }
+
+        .loader-ring {
+            width: 44px;
+            height: 44px;
+            border: 3px dashed var(--neon-cyan);
+            border-radius: 50%;
+            animation: spinning 1.2s linear infinite;
+            position: absolute;
+            display: none;
+        }
+
+        @keyframes spinning {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-msg {
+            color: #ff3838;
+            font-size: 0.8rem;
+            margin-top: 6px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .corp-badge {
+            font-size: 0.6rem;
+            color: var(--neon-gold);
+            border: 1px solid rgba(255, 189, 89, 0.2);
+            padding: 4px 10px;
+            border-radius: 6px;
+            align-self: flex-start;
+            margin-bottom: 15px;
+            font-weight: bold;
+            background: rgba(255, 189, 89, 0.03);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="view-wrapper">
+        
+        <!-- FIRST PAGE: SECURE SYSTEM UNLOCK -->
+        <div class="page" id="login-screen">
+            <div class="header-tag">Security Protocol</div>
+            <h2>Authentication</h2>
+            
+            <div class="field-group">
+                <label for="sys-pass">Master Lock Key</label>
+                <input type="password" id="sys-pass" placeholder="Enter Access Code Key" autocomplete="off">
+                <div class="status-msg" id="login-warn">Access Denied: Invalid Security token identifier.</div>
+            </div>
+
+            <button class="action-btn" onclick="executeAuthentication()">Verify Auth Node</button>
+        </div>
+
+        <!-- SECOND PAGE: WIN GO STRUCTURAL PREDICTOR -->
+        <div class="page" id="analyzer-screen">
+            <div class="header-tag">SureShot AI System</div>
+            <h2>Predictor Dashboard</h2>
+
+            <div class="corp-badge">SURESHOT PVT. LTD. ORIGINAL</div>
+
+            <!-- Live Core Synchronization Timer -->
+            <div class="timer-box">
+                <span>WINGO 1 MIN:</span>
+                <span id="w_timer">00:59</span>
+            </div>
+
+            <!-- New Multi-Trend Predictor Graphics -->
+            <div class="trend-panel">
+                <div class="trend-node">Trend Cluster: <span class="trend-val" id="t-index">📈 Upward</span></div>
+                <div class="trend-node">Stability: <span class="trend-val" id="t-stab">94.2%</span></div>
+            </div>
+            
+            <div class="field-group">
+                <label for="period-seq">Active Period Target</label>
+                <input type="number" id="period-seq" placeholder="Enter period tracking sequence" inputmode="numeric">
+                <div class="status-msg" id="seq-warn">Required Field: Enter target tracking parameter.</div>
+            </div>
+
+            <div class="output-viewport">
+                <div class="loader-ring" id="engine-loader"></div>
+                <div class="output-text" id="matrix-output">READY</div>
+            </div>
+
+            <button class="action-btn" onclick="processSequenceMetrics()">Execute Predictor</button>
+        </div>
+
+    </div>
+
+    <script>
+        const SECRET_PASSPHRASE = "CREATIVE2026";
+
+        // Login Page Router execution Switch
+        function executeAuthentication() {
+            const passField = document.getElementById('sys-pass');
+            const alertText = document.getElementById('login-warn');
+            const viewModule = document.getElementById('view-wrapper');
+
+            if (passField.value === SECRET_PASSPHRASE) {
+                alertText.style.display = 'none';
+                viewModule.classList.add('unlocked');
+                initializeWingoTimer();
+                startLiveTrendShifter();
+            } else {
+                alertText.style.display = 'block';
+                passField.style.borderColor = '#ff3838';
+                passField.value = '';
+            }
+        }
+
+        // Live 1-Minute Core Auto Countdown Engine
+        function initializeWingoTimer() {
+            const timerDisplay = document.getElementById('w_timer');
+            
+            setInterval(() => {
+                const currentSeconds = new Date().getSeconds();
+                const trackingRemaining = 59 - currentSeconds;
+                
+                const formattedSeconds = trackingRemaining < 10 ? "0" + trackingRemaining : trackingRemaining;
+                timerDisplay.innerText = "00:" + formattedSeconds;
+
+                // Dynamic UI data reset triggers if timer strikes absolute zero boundary
+                if (trackingRemaining === 0) {
+                    document.getElementById('matrix-output').classList.remove('active', 'big-state', 'small-state');
+                    document.getElementById('matrix-output').innerText = "REFRESHED";
+                }
+            }, 1000);
+        }
+
+        // Automated Trend (📉/📈) Matrix Graph Simulator
+        function startLiveTrendShifter() {
+            const trendIdx = document.getElementById('t-index');
+            const trendStab = document.getElementById('t-stab');
+            
+            setInterval(() => {
+                if(Math.random() > 0.5) {
+                    trendIdx.innerHTML = "📈 Velocity High";
+                    trendStab.innerText = (90 + Math.random() * 9).toFixed(1) + "%";
+                } else {
+                    trendIdx.innerHTML = "📉 Compression Low";
+                    trendStab.innerText = (85 + Math.random() * 10).toFixed(1) + "%";
+                }
+            }, 4000);
+        }
+
+        // Processing algorithm calculations for the target input data array
+        function processSequenceMetrics() {
+            const dataInput = document.getElementById('period-seq');
+            const fieldError = document.getElementById('seq-warn');
+            const engineLoader = document.getElementById('engine-loader');
+            const rawOutput = document.getElementById('matrix-output');
+
+            if (!dataInput.value || dataInput.value.trim() === "") {
+                fieldError.style.display = 'block';
+                dataInput.style.borderColor = '#ff3838';
+                return;
+            }
+
+            fieldError.style.display = 'none';
+            dataInput.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            
+            // Core Visual Reset Loop
+            rawOutput.classList.remove('active', 'big-state', 'small-state');
+            rawOutput.innerText = "";
+            engineLoader.style.display = 'block';
+
+            // Algorithmic execution cycle handling
+            setTimeout(() => {
+                engineLoader.style.display = 'none';
+                
+                const clusterString = dataInput.value.toString();
+                let processingWeight = 0;
+                
+                for (let idx = 0; idx < clusterString.length; idx++) {
+                    processingWeight += parseInt(clusterString.charAt(idx)) || 0;
+                }
+
+                // SureShot Corporate Matrix output calculations
+                if (processingWeight % 2 === 0) {
+                    rawOutput.innerText = "BIG";
+                    rawOutput.classList.add('active', 'big-state');
+                } else {
+                    rawOutput.innerText = "SMALL";
+                    rawOutput.classList.add('active', 'small-state');
+                }
+            }, 1100);
+        }
+    </script>
+</body>
+</html>
